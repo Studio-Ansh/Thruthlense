@@ -9,6 +9,10 @@ import { promisify } from "util";
 
 dotenv.config();
 
+if (process.env.VERCEL && !process.env.GEMINI_API_KEY) {
+  console.error("[STARTUP WARNING] GEMINI_API_KEY is not set in this environment. /api/verify/* routes will fall back to local heuristics.");
+}
+
 const execAsync = promisify(exec);
 
 const app = express();
@@ -1316,5 +1320,10 @@ async function startServer() {
 if (!process.env.VERCEL) {
   startServer();
 }
+
+app.use((err: any, req: any, res: any, next: any) => {
+  console.error("[UNHANDLED ERROR]", err);
+  res.status(500).json({ detail: "Internal server error", message: err?.message || "Unknown error" });
+});
 
 export default app;
