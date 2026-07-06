@@ -8,4 +8,3 @@ coverage/
 !.env.example
 __pycache__/
 *.pyc
-firebase-applet-config.json
