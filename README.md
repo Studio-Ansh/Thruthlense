@@ -309,7 +309,7 @@ python video_model/verify_video.py --video path/to/file.mp4 --report forensic_re
 
 | Name | Role | Contact |
 |---|---|---|
-| *Ansh* | *Project Lead / Full-Stack* | *www.linkedin.com/in/ansh-shrivastava-0ba99032b* |
+| *Ansh Shrivastava* | *Project Lead / Full-Stack* | *www.linkedin.com/in/ansh-shrivastava-0ba99032b* |
 | *Aparna Shukla* |  *Full-Stack*  | *www.linkedin.com/in/aparna-shukla-028247361/* |
 | *Mahak Shrivastava* | ML Development / Database | *www.linkedin.com/in/mahak-shrivastava-20b77433a/* |
 | *Nandini Wani* | *Backend / Deployment* | *www.linkedin.com/in/nandini-wani-084b503a0/* |
