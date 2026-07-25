@@ -4,6 +4,73 @@ An advanced, multi-modal neural verification platform engineered to analyze visu
 
 ---
 
+## 🗂️ MASTER CODEBASE SETS INDEX
+
+To make this complex multi-modal platform extremely clean and easy to navigate, the codebase is strictly organized into **four logical sets** directly within the file explorer. Refer to this index to locate and manage components:
+
+```
+📦 Repository Root
+ ├── 📝 README.md                           <-- Master Index & Documentation (Top Level)
+ │
+ ├── 🎨 [SET 1] FRONTEND (SET_1_FRONTEND/)
+ │    └── src/
+ │         ├── App.tsx                      <-- Primary View Controller, Theme Layout & Routing (Single Main File)
+ │         ├── main.tsx                     <-- Vite entrypoint & render mount
+ │         ├── index.css                    <-- Tailwind CSS v4 variables & custom animations
+ │         ├── components/                  <-- Interactive HUD Widgets & Visualizers
+ │         │    ├── TelemetryPlayground.tsx
+ │         │    ├── LoginScreen.tsx
+ │         │    ├── InteractivePhysicsLogo.tsx
+ │         │    ├── BackgroundGraphics.tsx
+ │         │    ├── AIPipelineGraph.tsx
+ │         │    └── ThreeQuestionCards.tsx
+ │         └── lib/
+ │              ├── api.ts                  <-- Frontend API proxy caller
+ │              └── firebase.ts             <-- Client-side Firebase/Firestore initializer
+ │
+ ├── ⚙️ [SET 2] BACKEND (SET_2_BACKEND/)
+ │    ├── server.ts                         <-- Centralized API Router, Heuristic Engines & File Ingress (Single File)
+ │    ├── train.py                          <-- Neural network training harness
+ │    ├── evaluate.py                       <-- Pipeline validation metrics harness
+ │    ├── data/                             <-- Curated datasets and scanner archives
+ │    ├── image_model/                      <-- Image forensic CNN pipeline files
+ │    ├── video_model/                      <-- Video deepfake detection pipeline files
+ │    ├── models/                           <-- PyTorch model weight file registries
+ │    ├── firebase.json                     <-- Firebase emulator and resource configurations
+ │    ├── firestore.rules                   <-- Firestore read/write collection security rules
+ │    ├── DRAFT_firestore.rules             <-- Draft security rule reference
+ │    ├── firebase-blueprint.json           <-- Security and schema specifications
+ │    └── firebase-applet-config.json       <-- Applet database connection credentials
+ │
+ ├── 🚀 [SET 3] DEPLOYMENT CONFIGURATIONS (At Root)
+ │    ├── package.json                      <-- Build manifest, dependency list, and scripts
+ │    ├── tsconfig.json                     <-- TypeScript compiler configurations
+ │    ├── vite.config.ts                    <-- Frontend asset compilation configurations
+ │    └── vercel.json                       <-- Serverless deployment and route redirect rules
+ │
+ └── 🐙 [SET 4] GIT & ENVIRONMENT IGNORES (At Root)
+      ├── .gitignore                        <-- Global Git ignore criteria
+      └── .vercelignore                     <-- Production build file exclusion filters
+```
+
+### Detailed Sets Overview:
+
+1. **🎨 Frontend Set** (`SET_1_FRONTEND/`):
+   All UI elements, custom interactive physics animations, and forensic metrics graphs are written in modular React 19 + Tailwind CSS.
+   * *Central Command*: `SET_1_FRONTEND/src/App.tsx` controls the overall HUD view-manager, state machine, and section-by-section layout logic.
+
+2. **⚙️ Backend Set** (`SET_2_BACKEND/`):
+   Consolidated into a robust Express server. Handles file ingestion buffers, runs local python forensics subprocesses, and securely proxies request pipelines to the Gemini 3.5 Flash API. This folder also houses all backend Firebase database connection secrets, security rulesets, and blueprints.
+   * *Central Command*: All backend logic resides cleanly within `SET_2_BACKEND/server.ts` for simple, offline-capable code execution.
+
+3. **🚀 Deployment Set** (Project Root):
+   Manages production bundling (compiling backend code to a self-contained `dist/server.cjs` with `esbuild` and bundling the frontend static assets via `vite build`), environment routing, and Firebase integration.
+
+4. **🐙 Git / Ignore Set** (Project Root):
+   Defines standard exclusions to prevent heavy ML weight files (`*.pt`, model checkpoints) and sensitive local environment files (`.env`) from leaking into public repository hosts or deployment instances.
+
+---
+
 ## 🌟 Core System Capabilities
 
 ### 1. Multi-Modal Forensics Pipelines

@@ -26,7 +26,10 @@
   "exclude": [
     "node_modules",
     "dist",
-    "image_model",
-    "video_model"
+    "SET_2_BACKEND/image_model",
+    "SET_2_BACKEND/video_model",
+    "SET_2_BACKEND/models",
+    "new_model_2",
+    "SET_2_BACKEND/new_model_2"
   ]
 }
