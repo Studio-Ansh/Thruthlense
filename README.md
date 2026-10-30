@@ -1,191 +1,325 @@
-# Truthlens Verify 🔍
+# `app.py` — Explained in Simple Words
 
-An advanced, multi-modal neural verification platform engineered to analyze visual authenticity, detect deepfakes, trace cryptographic lineage logs, and verify factual claims in real-time. Powered by custom PyTorch forensics pipelines, Google Firestore, and state-of-the-art GenAI models (Gemini 3.5 Flash).
+This file is the **brain of the application**. It does two things:
+1. **Builds a supply-chain graph** (a network of connected things) in memory
+2. **Runs a web server** that lets the front-end webpage talk to it
+
+Let's walk through it section by section.
 
 ---
 
-## 🗂️ MASTER CODEBASE SETS INDEX
+## 1. The Imports (Lines 17–20)
 
-To make this complex multi-modal platform extremely clean and easy to navigate, the codebase is strictly organized into **four logical sets** directly within the file explorer. Refer to this index to locate and manage components:
-
-```
-📦 Repository Root
- ├── 📝 README.md                           <-- Master Index & Documentation (Top Level)
- │
- ├── 🎨 [SET 1] FRONTEND (SET_1_FRONTEND/)
- │    └── src/
- │         ├── App.tsx                      <-- Primary View Controller, Theme Layout & Routing (Single Main File)
- │         ├── main.tsx                     <-- Vite entrypoint & render mount
- │         ├── index.css                    <-- Tailwind CSS v4 variables & custom animations
- │         ├── components/                  <-- Interactive HUD Widgets & Visualizers
- │         │    ├── TelemetryPlayground.tsx
- │         │    ├── LoginScreen.tsx
- │         │    ├── InteractivePhysicsLogo.tsx
- │         │    ├── BackgroundGraphics.tsx
- │         │    ├── AIPipelineGraph.tsx
- │         │    └── ThreeQuestionCards.tsx
- │         └── lib/
- │              ├── api.ts                  <-- Frontend API proxy caller
- │              └── firebase.ts             <-- Client-side Firebase/Firestore initializer
- │
- ├── ⚙️ [SET 2] BACKEND (SET_2_BACKEND/)
- │    ├── server.ts                         <-- Centralized API Router, Heuristic Engines & File Ingress (Single File)
- │    ├── train.py                          <-- Neural network training harness
- │    ├── evaluate.py                       <-- Pipeline validation metrics harness
- │    ├── data/                             <-- Curated datasets and scanner archives
- │    ├── image_model/                      <-- Image forensic CNN pipeline files
- │    ├── video_model/                      <-- Video deepfake detection pipeline files
- │    ├── models/                           <-- PyTorch model weight file registries
- │    ├── firebase.json                     <-- Firebase emulator and resource configurations
- │    ├── firestore.rules                   <-- Firestore read/write collection security rules
- │    ├── DRAFT_firestore.rules             <-- Draft security rule reference
- │    ├── firebase-blueprint.json           <-- Security and schema specifications
- │    └── firebase-applet-config.json       <-- Applet database connection credentials
- │
- ├── 🚀 [SET 3] DEPLOYMENT CONFIGURATIONS (At Root)
- │    ├── package.json                      <-- Build manifest, dependency list, and scripts
- │    ├── tsconfig.json                     <-- TypeScript compiler configurations
- │    ├── vite.config.ts                    <-- Frontend asset compilation configurations
- │    └── vercel.json                       <-- Serverless deployment and route redirect rules
- │
- └── 🐙 [SET 4] GIT & ENVIRONMENT IGNORES (At Root)
-      ├── .gitignore                        <-- Global Git ignore criteria
-      └── .vercelignore                     <-- Production build file exclusion filters
+```python
+import json, copy, pathlib, time
+from flask import Flask, jsonify, request, send_from_directory
+import networkx as nx
 ```
 
-### Detailed Sets Overview:
+Think of these as **tools the app picks up before starting work**:
 
-1. **🎨 Frontend Set** (`SET_1_FRONTEND/`):
-   All UI elements, custom interactive physics animations, and forensic metrics graphs are written in modular React 19 + Tailwind CSS.
-   * *Central Command*: `SET_1_FRONTEND/src/App.tsx` controls the overall HUD view-manager, state machine, and section-by-section layout logic.
-
-2. **⚙️ Backend Set** (`SET_2_BACKEND/`):
-   Consolidated into a robust Express server. Handles file ingestion buffers, runs local python forensics subprocesses, and securely proxies request pipelines to the Gemini 3.5 Flash API. This folder also houses all backend Firebase database connection secrets, security rulesets, and blueprints.
-   * *Central Command*: All backend logic resides cleanly within `SET_2_BACKEND/server.ts` for simple, offline-capable code execution.
-
-3. **🚀 Deployment Set** (Project Root):
-   Manages production bundling (compiling backend code to a self-contained `dist/server.cjs` with `esbuild` and bundling the frontend static assets via `vite build`), environment routing, and Firebase integration.
-
-4. **🐙 Git / Ignore Set** (Project Root):
-   Defines standard exclusions to prevent heavy ML weight files (`*.pt`, model checkpoints) and sensitive local environment files (`.env`) from leaking into public repository hosts or deployment instances.
+| Import | What it does (in plain English) |
+|---|---|
+| `json` | Reads the `.json` data file (like reading a spreadsheet) |
+| `copy` | Makes deep copies of the graph (like photocopying a document so the original stays safe) |
+| `pathlib` | Finds file paths on your computer |
+| `time` | Measures how long operations take (like a stopwatch) |
+| `flask` | The **web server framework** — it receives requests from the browser and sends back responses |
+| `networkx` (as `nx`) | The **graph library** — it knows how to build networks of connected nodes and traverse them |
 
 ---
 
-## 🌟 Core System Capabilities
+## 2. Setting Up Paths & Flask (Lines 25–31)
 
-### 1. Multi-Modal Forensics Pipelines
-- **Visual Authentication (Images)**: High-resolution texture and frequency-domain check utilizing a hybrid **EfficientNetB4** & **ViT (Vision Transformer)** neural architecture. Detects generative infills, diffusion boundary anomalies, lighting mismatches, and edge-refraction artifacts.
-- **Spatio-Temporal Analysis (Videos)**: Frame-by-frame analysis with a **ResNeXt50-Bi-LSTM** sequence model. Tracks micro-expressions, lip-sync alignment, and temporal jitter to detect modern face-swaps.
-- **Acoustic Fingerprinting (Audio)**: Analyzes voice pitch contours, spectral integrity, and phase coherence to flag voice-cloning networks or neural vocoder synthesis.
-- **Cognitive Fallback Engine**: Standardized heuristic evaluation filters and rule-based verification when remote API networks or pipeline scripts are disconnected.
-
-### 2. Real-Time Fact & News Verification
-- **Aggregated Dataset Scanning**: Cross-references user queries instantly against high-precision curated rumor datasets (`TheNewsAPI`, `Currents`, `Mediastack`, `GNews`, `NewsData`).
-- **Semantic Search Grounding**: Leverages Google Search Grounding through Gemini to dynamically parse context integrity and assign reliability ratings.
-- **Domain Monitoring**: Dynamically updates risk profiles for newly flagged sources in a centralized host database.
-
-### 3. Verification Log & User Telemetry
-- **Cloud-Synced History**: Secure, lightweight user session tracking with persistent verification histories.
-- **Durable Storage**: Utilizes Google Cloud Firestore for tracking scanning histories, confidence percentages, threat categories, and generated report links.
-- **Authenticity Audit Logs**: Renders full JSON metadata tracing backbones used, confidence tiers, and red flag lists.
-
-### 4. Interactive Immersive User Interface
-- **Modern Spatial Design**: A dark, high-contrast visual theme designed for heavy forensics monitoring.
-- **AI Pipeline Visualizer**: Renders interactive canvas nodes showing computational layers (Inference Engine, Cognitive Grounding, Neural Decoders).
-- **Physics-Informed Aesthetics**: Subtle, high-performance web animations, interactive canvas graphics, and responsive particle effects driven by modern physics math.
-
----
-
-## 🛠️ Architecture & Tech Stack
-
-### Frontend Layer
-- **Framework**: React 19 + TypeScript (strictly typed)
-- **Styling**: Tailwind CSS v4 (offering rapid fluid layout engines and deep system styling variables)
-- **Motion**: Framer Motion v12 (`motion/react`) for smooth page transitions and responsive user feedback loops
-- **Icons**: Lucide React for consistent display indicators
-
-### Backend Layer
-- **Runtime**: Node.js + Express + `tsx` for TypeScript execution
-- **File Ingress**: Multer (configured with 100MB buffer memory limit)
-- **Deep Learning Pipelines**: Local Python3 scripts running PyTorch inference engines to evaluate visual artifacts
-- **AI Orchestration**: Official `@google/genai` TypeScript SDK (utilizing Gemini 3.5 Flash for advanced visual forensics and real-time grounding)
-
-### Persistent Services
-- **Database**: Cloud Firestore (NoSQL Document database representing user records, monitored domains, and telemetry details)
-- **Authentication**: Firebase Auth integration (custom username lookup mappings for smooth onboarding)
-
----
-
-## 🚀 Getting Started
-
-### Prerequisites
-- **Node.js** (v18 or higher)
-- **npm** (v9 or higher)
-- **Python 3.10+** (if executing native PyTorch verification scripts locally)
-
-### Installation
-
-1. Install project dependencies:
-   ```bash
-   npm install
-   ```
-
-2. (Optional) Install local PyTorch and requirements for physical script analysis:
-   ```bash
-   pip install -r video_model/requirements.txt
-   ```
-
-### Environment Configuration
-
-Configure your environment variables by copying `.env.example` to `.env`:
-```env
-GEMINI_API_KEY=your_gemini_api_key_here
+```python
+BASE_DIR = pathlib.Path(__file__).resolve().parent
+DATA_FILE = BASE_DIR / "photon_sprint1_graph_data.json"
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 ```
 
-Ensure a compliant `/firebase-applet-config.json` is configured in the root directory:
+- **`BASE_DIR`** → "Where is this `app.py` file located on the computer?"
+- **`DATA_FILE`** → "The JSON data file is right next to me in the same folder"
+- **`app = Flask(...)`** → "Create a web server. Also, there's a `static/` folder with the webpage inside it"
+
+---
+
+## 3. Loading the Data (Lines 37–42)
+
+```python
+def _load_raw_data() -> dict:
+    with open(DATA_FILE, encoding="utf-8") as f:
+        return json.load(f)
+
+RAW = _load_raw_data()
+```
+
+**In simple words:** Open the JSON file, read everything inside it, and store it in a variable called `RAW`. This happens **once** when the server starts. `RAW` never changes — it's the **original master copy** of the data.
+
+---
+
+## 4. Building the Graph (Lines 45–63)
+
+```python
+def _build_graph(raw: dict) -> nx.DiGraph:
+    G = nx.DiGraph()
+
+    for category in ("suppliers", "parts", "products", "orders"):
+        for node in raw["nodes"][category]:
+            G.add_node(node["id"], **node)
+
+    for edge_type in ("supplies", "used_in", "fulfills"):
+        for edge in raw["edges"][edge_type]:
+            G.add_edge(edge["source"], edge["target"], ...)
+
+    return G
+```
+
+**In simple words:** This builds the **network diagram** from the JSON data.
+
+Imagine you have a whiteboard:
+1. **First loop** → You stick 19 sticky notes on it (one for each supplier, part, product, and order). Each sticky note has a unique ID like `SUP-01` or `PART-03`.
+2. **Second loop** → You draw 21 arrows between the sticky notes:
+   - `SUP-01` **→ supplies →** `PART-01`
+   - `PART-01` **→ used in →** `PROD-01`
+   - `PROD-01` **→ fulfills →** `ORD-01`
+
+The result is a **directed graph** — arrows only go one way (left to right: supplier → part → product → order).
+
+```mermaid
+flowchart LR
+    SUP["🏭 Suppliers"] -->|SUPPLIES| PART["🔩 Parts"]
+    PART -->|USED_IN| PROD["📦 Products"]
+    PROD -->|FULFILLS| ORD["📋 Orders"]
+```
+
+---
+
+## 5. The Live Graph & Undo Stack (Lines 67–68)
+
+```python
+GRAPH: nx.DiGraph = _build_graph(RAW)
+UNDO_STACK: list[dict] = []
+```
+
+- **`GRAPH`** → This is the **working copy** of the graph. When you delete nodes, this is what changes.
+- **`UNDO_STACK`** → This is like a **stack of saved snapshots**. Every time you delete something, the app takes a "photo" of the graph *before* the deletion and pushes it onto this stack. When you hit Undo, it pops the latest photo and restores it.
+
+> Think of it like Ctrl+Z in a text editor — it remembers previous states so you can go back.
+
+---
+
+## 6. Helper Functions (Lines 71–105)
+
+### `_graph_to_json(G)` — Convert graph to JSON for the browser
+
+```
+Takes the graph → spits out a simple {"nodes": [...], "edges": [...]} dictionary
+```
+
+The browser doesn't understand NetworkX objects, so this **translates** the graph into plain JSON that D3.js can draw.
+
+### `_downstream(G, start)` — "What depends on this node?"
+
+```
+Given a starting node → finds ALL nodes reachable by following arrows forward
+```
+
+Example: If you ask "what's downstream of `SUP-01`?", it follows arrows from `SUP-01` → finds `PART-01`, `PART-02`, `PART-05` → then follows those arrows → finds `PROD-01` → follows those → finds `ORD-01` through `ORD-06`. It uses **BFS** (Breadth-First Search) — like ripples spreading from a stone dropped in water.
+
+### `_snapshot()` — Take a photo of the current graph
+
+```
+Deep-copies every node and every edge → returns the copy
+```
+
+This is the "save state" function. It makes a **completely independent copy** so that modifying the real graph later doesn't affect the saved version.
+
+### `_restore(snap)` — Load a saved photo
+
+```
+Clears the current graph → rebuilds it from the snapshot
+```
+
+This is the "load state" function — the opposite of `_snapshot()`.
+
+---
+
+## 7. The API Routes (Lines 110–278)
+
+These are the **URLs the browser can call** to interact with the graph. Think of them as buttons on a remote control:
+
+---
+
+### 🏠 `GET /` — Serve the webpage
+
+```python
+@app.route("/")
+def index():
+    return send_from_directory(BASE_DIR / "static", "index.html")
+```
+
+**What it does:** When you open `http://localhost:5000/` in your browser, it sends back the `index.html` file (the interactive graph page).
+
+---
+
+### 📊 `GET /api/graph` — Get the full graph
+
+```python
+@app.route("/api/graph")
+def api_graph():
+    return jsonify(_graph_to_json(GRAPH))
+```
+
+**What it does:** Returns **all** nodes and edges as JSON. The front-end calls this when the page first loads to draw the entire graph.
+
+**Example response (simplified):**
 ```json
 {
-  "projectId": "studio-2293577197-e9247",
-  "appId": "1:1086136839374:web:db599e1f8e80564d42b49f",
-  "apiKey": "###############",
-  "authDomain": "studio-2293577197-e9247.firebaseapp.com",
-  "firestoreDatabaseId": "(default)",
-  "storageBucket": "studio-2293577197-e9247.firebasestorage.app",
-  "messagingSenderId": "1086136839374"
+  "nodes": [{"id": "SUP-01", "kind": "supplier", "label": "Apex Components"}, ...],
+  "edges": [{"source": "SUP-01", "target": "PART-01", "relation": "SUPPLIES"}, ...]
 }
 ```
 
 ---
 
-## 💻 Development & Deployment Commands
+### 🔍 `GET /api/downstream/<node_id>` — Trace dependencies
 
-- **Start Development Server**: Runs the Express backend server on Port `3000` with hot-reloaded dev assets served through Vite:
-  ```bash
-  npm run dev
-  ```
+```python
+@app.route("/api/downstream/<node_id>")
+def api_downstream(node_id):
+    reachable = _downstream(GRAPH, node_id)
+    return jsonify({"root": node_id, "downstream": list(reachable)})
+```
 
-- **Build Production Bundle**: Compiles TypeScript backend files using `esbuild` into a unified CommonJS target `dist/server.cjs` and processes frontend static assets into `dist/`:
-  ```bash
-  npm run build
-  ```
+**What it does:** "If I pick this one node, what other nodes depend on it (directly or indirectly)?"
 
-- **Run Production App**: Launches the standalone, compiled server with production environment bindings:
-  ```bash
-  npm run start
-  ```
-
-- **Verify Type Safety & Integrity**: Run the linter to ensure syntax compliance:
-  ```bash
-  npm run lint
-  ```
+**Example:** `GET /api/downstream/SUP-01` → returns all parts, products, and orders that would be affected if Supplier `SUP-01` disappeared.
 
 ---
 
-## 🔒 Security & Data Isolation
+### ⚠️ `GET /api/impact/<node_id>` — Preview deletion impact
 
-- **Server-Side API Proxies**: All API credentials and model keys remain isolated on the Express server (`server.ts`). Browser clients communicate solely via clean backend routes (`/api/*`), completely safeguarding system keys from devtools inspector exposure.
-- **Firestore Security Rules**: Security guidelines restrict and secure read/write paths, maintaining robust data isolation for individual operators.
+```python
+@app.route("/api/impact/<node_id>")
+def api_impact(node_id):
+    ...
+```
+
+**What it does:** "**What would happen IF** I deleted this node?" — without actually deleting anything. It's a **preview/dry-run**.
+
+**Returns:**
+- The node's details
+- All its incoming and outgoing connections
+- Every downstream node that would be removed in a cascade
+- Every edge that would be removed
+- Total count of affected nodes and edges
+- Time complexity: O(V + E)
+
+**Example:** Before deleting `PART-01`, the front-end calls this to show the user: "Deleting this will also remove PROD-01 and 6 orders. Are you sure?"
 
 ---
 
-*Engineered with precision for the Truthlens Open Media Initiative.*
+### 🗑️ `DELETE /api/node/<node_id>` — Delete a node (with cascade)
+
+```python
+@app.route("/api/node/<node_id>", methods=["DELETE"])
+def api_delete_node(node_id):
+    ...
+```
+
+**What it does (step by step):**
+
+1. ⏱️ **Starts a stopwatch** (`time.perf_counter()`)
+2. 📸 **Takes a snapshot** of the current graph (for undo)
+3. 🔍 **Finds all downstream nodes** (everything that depends on this node)
+4. 🗑️ **Removes them all** from the graph (cascade delete)
+5. ⏱️ **Stops the stopwatch** and records how many milliseconds it took
+6. 💾 **Saves the snapshot** to the undo stack (with metadata about what was deleted)
+7. 📤 **Returns** the updated graph + details of what was removed + timing + complexity info
+
+**Example:** `DELETE /api/node/PART-05` → Removes the Wiring Harness part, and since PROD-01 needs it, also removes PROD-01 and all 6 orders that PROD-01 fulfills. The response tells you exactly what was removed and how long it took.
+
+---
+
+### ↩️ `POST /api/undo` — Undo the last delete
+
+```python
+@app.route("/api/undo", methods=["POST"])
+def api_undo():
+    ...
+```
+
+**What it does:**
+1. Checks if there's anything to undo (is the stack empty?)
+2. **Pops the most recent snapshot** off the undo stack
+3. **Restores the graph** to that snapshot
+4. Returns the restored graph + info about what was brought back
+
+**In simple words:** It's Ctrl+Z. Whatever you deleted last comes back, along with all its connections.
+
+---
+
+### 🔄 `POST /api/reset` — Reset everything
+
+```python
+@app.route("/api/reset", methods=["POST"])
+def api_reset():
+    global GRAPH
+    UNDO_STACK.clear()
+    GRAPH = _build_graph(RAW)
+    return jsonify({"graph": _graph_to_json(GRAPH), "node_count": GRAPH.number_of_nodes()})
+```
+
+**What it does:** 
+1. **Clears the entire undo history**
+2. **Rebuilds the graph from scratch** using the original `RAW` data
+3. Returns the fresh graph
+
+**In simple words:** It's a factory reset. No matter how many things you deleted, this brings everything back to the original state.
+
+---
+
+## 8. Starting the Server (Lines 282–283)
+
+```python
+if __name__ == "__main__":
+    app.run(debug=True, port=5000)
+```
+
+**What it does:** When you run `python app.py`, this starts the Flask web server on `http://localhost:5000`. The `debug=True` means it auto-reloads when you edit the code and shows detailed error messages.
+
+---
+
+## Summary: The Big Picture
+
+```mermaid
+sequenceDiagram
+    participant Browser as 🌐 Browser (index.html)
+    participant Flask as 🐍 Flask (app.py)
+    participant NX as 📊 NetworkX (Graph)
+
+    Browser->>Flask: GET / (open page)
+    Flask-->>Browser: index.html
+
+    Browser->>Flask: GET /api/graph (load data)
+    Flask->>NX: Convert graph to JSON
+    Flask-->>Browser: {nodes, edges}
+
+    Browser->>Flask: GET /api/impact/PART-01 (hover/preview)
+    Flask->>NX: BFS downstream from PART-01
+    Flask-->>Browser: Affected nodes & edges
+
+    Browser->>Flask: DELETE /api/node/PART-01 (user confirms)
+    Flask->>NX: Snapshot → Cascade delete → Save undo
+    Flask-->>Browser: Updated graph + what was removed
+
+    Browser->>Flask: POST /api/undo (user clicks undo)
+    Flask->>NX: Pop snapshot → Restore graph
+    Flask-->>Browser: Restored graph
+
+    Browser->>Flask: POST /api/reset (user clicks reset)
+    Flask->>NX: Rebuild from original JSON
+    Flask-->>Browser: Original graph
+```
+
+**TL;DR:** `app.py` is a Flask web server that holds a supply-chain graph in memory. The browser asks it questions ("show me the graph", "what happens if I delete this?", "delete it", "undo that", "start over"), and it answers with JSON. It uses NetworkX for all the graph logic (building, traversing, deleting) and keeps an undo stack of snapshots so you can reverse deletions.
